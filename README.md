@@ -34,7 +34,7 @@
 ### Microcontroller
 
 #### healtcheck
-```json
+```
 {
     method: 'GET',
     url: '/health',
@@ -46,7 +46,7 @@
 ```
 
 #### getData
-```json
+```
 {
     method: 'GET',
     url: '/data',
@@ -60,7 +60,7 @@
 ### Server
 
 #### healtcheck
-```json
+```
 {
     method: 'GET',
     url: '/health',
@@ -72,7 +72,7 @@
 ```
 
 #### register
-```json
+```
 {
     method: 'post',
     url: '/register',
@@ -87,7 +87,7 @@
 ```
 
 #### getLiveData
-```json
+```
 {
     method: 'post',
     url: '/data/live',
@@ -102,7 +102,7 @@
 ```
 
 #### getData
-```json
+```
 {
     method: 'post',
     url: '/data',
