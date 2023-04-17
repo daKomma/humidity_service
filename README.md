@@ -66,7 +66,8 @@
     url: '/health',
     response: {
         status: 'UP' || 'ERROR',
-        message: STRING
+        message: STRING,
+        timestamp: DATE
     }
 }
 ```
