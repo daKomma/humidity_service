@@ -90,7 +90,7 @@
 #### getLiveData
 ```
 {
-    method: 'post',
+    method: 'get',
     url: '/data/live',
     response: {
         timestamp: DATE,
@@ -105,7 +105,7 @@
 #### getData
 ```
 {
-    method: 'post',
+    method: 'get',
     url: '/data',
     body: {
         start: DATE,
