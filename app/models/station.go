@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,15 +20,25 @@ func (s *Station) NewStation(url string) {
 }
 
 func (s *Station) UpdateData() {
+	type Response struct {
+		Hum  float32 `json:"hum"`
+		Temp float32 `json:"temp"`
+	}
+
 	resp, err := http.Get(s.url)
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	resBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
+	body, err := ioutil.ReadAll(resp.Body)
+
+	var result Response
+	if err := json.Unmarshal(body, &result); err != nil {
 		log.Fatalln(err)
 	}
 
+	s.humidity = result.Hum
+	s.temperature = result.Temp
+	s.updated = time.Now()
 }
