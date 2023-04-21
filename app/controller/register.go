@@ -11,7 +11,7 @@ import (
 type RegisterController struct{}
 
 type Body struct {
-	Url string `form:"url" binding:"required"`
+	Url string `json:"url" binding:"required"`
 }
 
 func (r RegisterController) Add(c *gin.Context) {
@@ -24,6 +24,9 @@ func (r RegisterController) Add(c *gin.Context) {
 
 	station := new(models.Station)
 	station.NewStation(body.Url)
+
+	manager := models.GetManager()
+	manager.Add(station)
 
 	c.String(http.StatusOK, body.Url)
 }

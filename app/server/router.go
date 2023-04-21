@@ -7,8 +7,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var router *gin.Engine
-var once sync.Once
+var (
+	router *gin.Engine
+	once   sync.Once
+)
 
 func NewRouter() *gin.Engine {
 	once.Do(func() {

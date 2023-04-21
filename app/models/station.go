@@ -10,6 +10,7 @@ import (
 
 type Station struct {
 	url         string
+	added       time.Time
 	updated     time.Time
 	humidity    float32
 	temperature float32
@@ -17,6 +18,7 @@ type Station struct {
 
 func (s *Station) NewStation(url string) {
 	s.url = url
+	s.added = time.Now()
 }
 
 func (s *Station) UpdateData() {
