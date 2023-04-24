@@ -3,7 +3,7 @@ package models
 import "sync"
 
 type Manager struct {
-	stations []*Station
+	Stations []*Station
 }
 
 var (
@@ -13,6 +13,8 @@ var (
 
 func GetManager() *Manager {
 	once.Do(func() {
+		manager = new(Manager)
+
 		manager.loadFromFile()
 	})
 
@@ -24,5 +26,5 @@ func (m *Manager) loadFromFile() {
 }
 
 func (m *Manager) Add(station *Station) {
-	m.stations = append(m.stations, station)
+	m.Stations = append(m.Stations, station)
 }
