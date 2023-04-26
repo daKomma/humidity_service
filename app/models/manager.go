@@ -1,9 +1,13 @@
 package models
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/google/uuid"
+)
 
 type Manager struct {
-	Stations []*Station
+	Stations map[uuid.UUID]*Station
 }
 
 var (
@@ -26,5 +30,11 @@ func (m *Manager) loadFromFile() {
 }
 
 func (m *Manager) Add(station *Station) {
-	m.Stations = append(m.Stations, station)
+	m.Stations[station.id] = station
+}
+
+func (m *Manager) UpdateAll() {
+	for _, station := range m.Stations {
+		go station.UpdateData()
+	}
 }

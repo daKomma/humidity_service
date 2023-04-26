@@ -7,9 +7,12 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Station struct {
+	id          uuid.UUID
 	url         *url.URL
 	added       time.Time
 	updated     time.Time
@@ -28,6 +31,7 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 		return s, err
 	}
 
+	s.id = uuid.New()
 	s.url = checkedUrl
 	s.added = time.Now()
 
