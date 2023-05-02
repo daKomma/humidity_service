@@ -82,16 +82,18 @@
     },
     response: {
         connection: BOOLEAN,
-        health: STRING (URL)
+        health: STRING (URL),
+        uuid: uuid of station
     }
 }
 ```
 
 #### getLiveData
+for all or specific station
 ```
 {
     method: 'get',
-    url: '/data/live',
+    url: '/data/live/:uuid',
     response: {
         timestamp: DATE,
         data: {
