@@ -23,6 +23,8 @@ func GetManager() *Manager {
 	once.Do(func() {
 		manager = new(Manager)
 
+		manager.Stations = make(map[uuid.UUID]*Station)
+
 		manager.loadFromFile(os.Getenv("URLPATH"))
 	})
 

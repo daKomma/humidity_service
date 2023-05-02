@@ -28,5 +28,5 @@ func (r RegisterController) Add(c *gin.Context) {
 	manager := models.GetManager()
 	manager.Add(station)
 
-	c.String(http.StatusOK, body.Url)
+	c.JSON(http.StatusOK, gin.H{"url": body.Url, "uuid": station.GetID()})
 }

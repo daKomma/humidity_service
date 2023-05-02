@@ -65,3 +65,7 @@ func (s *Station) GetHumidity() float32 {
 func (s *Station) GetTemperature() float32 {
 	return s.temperature
 }
+
+func (s *Station) GetID() string {
+	return s.id.String()
+}

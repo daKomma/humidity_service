@@ -81,7 +81,6 @@
         url: STRING,
     },
     response: {
-        connection: BOOLEAN,
         health: STRING (URL),
         uuid: uuid of station
     }
