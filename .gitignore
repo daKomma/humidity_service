@@ -7,3 +7,6 @@
 *.out
 
 go.work
+
+*node_modules
+*package-lock.json

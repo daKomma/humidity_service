@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"humidity_service/main/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,9 @@ import (
 type DataController struct{}
 
 func (d DataController) GetLive(c *gin.Context) {
+	manager := models.GetManager()
+	manager.UpdateAll()
+
 	c.String(http.StatusOK, "Live Route")
 }
 
