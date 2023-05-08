@@ -16,6 +16,10 @@ func NewRouter() *gin.Engine {
 	once.Do(func() {
 		router = gin.Default()
 
+		router.UseRawPath = true
+
+		router.UnescapePathValues = false
+
 		health := new(controller.HealthController)
 
 		register := new(controller.RegisterController)
@@ -30,7 +34,7 @@ func NewRouter() *gin.Engine {
 
 			data.GET("/", dataController.GetSpecific)
 
-			data.GET("/live", dataController.GetLive)
+			data.GET("/live/*id", dataController.GetLive)
 		}
 
 	})

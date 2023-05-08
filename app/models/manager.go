@@ -6,12 +6,10 @@ import (
 	"net/url"
 	"os"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 type Manager struct {
-	Stations map[uuid.UUID]*Station
+	Stations map[string]*Station
 }
 
 var (
@@ -23,7 +21,7 @@ func GetManager() *Manager {
 	once.Do(func() {
 		manager = new(Manager)
 
-		manager.Stations = make(map[uuid.UUID]*Station)
+		manager.Stations = make(map[string]*Station)
 
 		manager.loadFromFile(os.Getenv("URLPATH"))
 	})
@@ -58,7 +56,7 @@ func (m *Manager) loadFromFile(path string) {
 }
 
 func (m *Manager) Add(station *Station) {
-	m.Stations[station.Id] = station
+	m.Stations[station.Id.String()] = station
 }
 
 func (m *Manager) UpdateAll() {
@@ -71,6 +69,18 @@ func (m *Manager) UpdateAll() {
 			wg.Done()
 		}()
 	}
+
+	wg.Wait()
+}
+
+func (m *Manager) Update(id string) {
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		m.Stations[id].UpdateData()
+		wg.Done()
+	}()
 
 	wg.Wait()
 }

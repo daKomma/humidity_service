@@ -3,6 +3,7 @@ package controller
 import (
 	"humidity_service/main/models"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,13 +12,19 @@ type DataController struct{}
 
 func (d DataController) GetLive(c *gin.Context) {
 	manager := models.GetManager()
-	manager.UpdateAll()
+	id := c.Param("id")
+
+	if id != "/" {
+		id, _ = strings.CutPrefix(id, "/")
+
+		manager.Update(id)
+	} else {
+		manager.UpdateAll()
+	}
 
 	stations := make([]models.Station, 0, len(manager.Stations))
 
 	for _, station := range manager.Stations {
-		// stationJSON, _ := json.Marshal(station)
-		// stations = append(stations, stationJSON...)
 		stations = append(stations, *station)
 	}
 
