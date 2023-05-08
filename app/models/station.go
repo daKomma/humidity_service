@@ -12,12 +12,12 @@ import (
 )
 
 type Station struct {
-	id          uuid.UUID
-	url         *url.URL
-	added       time.Time
-	updated     time.Time
-	humidity    float32
-	temperature float32
+	Id          uuid.UUID
+	Url         *url.URL
+	Added       time.Time
+	Updated     time.Time
+	Humidity    float32
+	Temperature float32
 }
 type StationResponse struct {
 	Hum  float32 `json:"hum"`
@@ -31,16 +31,16 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 		return s, err
 	}
 
-	s.id = uuid.New()
-	s.url = checkedUrl
-	s.added = time.Now()
+	s.Id = uuid.New()
+	s.Url = checkedUrl
+	s.Added = time.Now()
 
 	return s, nil
 }
 
 func (s *Station) UpdateData() {
 
-	resp, err := http.Get(s.url.String())
+	resp, err := http.Get(s.Url.String())
 
 	if err != nil {
 		log.Fatalln(err)
@@ -53,19 +53,7 @@ func (s *Station) UpdateData() {
 		log.Fatalln(err)
 	}
 
-	s.humidity = result.Hum
-	s.temperature = result.Temp
-	s.updated = time.Now()
-}
-
-func (s *Station) GetHumidity() float32 {
-	return s.humidity
-}
-
-func (s *Station) GetTemperature() float32 {
-	return s.temperature
-}
-
-func (s *Station) GetID() string {
-	return s.id.String()
+	s.Humidity = result.Hum
+	s.Temperature = result.Temp
+	s.Updated = time.Now()
 }

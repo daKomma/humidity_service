@@ -58,11 +58,19 @@ func (m *Manager) loadFromFile(path string) {
 }
 
 func (m *Manager) Add(station *Station) {
-	m.Stations[station.id] = station
+	m.Stations[station.Id] = station
 }
 
 func (m *Manager) UpdateAll() {
+	var wg sync.WaitGroup
+	wg.Add(len(m.Stations))
+
 	for _, station := range m.Stations {
-		go station.UpdateData()
+		go func() {
+			station.UpdateData()
+			wg.Done()
+		}()
 	}
+
+	wg.Wait()
 }

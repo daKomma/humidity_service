@@ -50,12 +50,12 @@ func TestUpdateData(t *testing.T) {
 
 			station.UpdateData()
 
-			if station.GetHumidity() != test.response.Hum {
-				t.Errorf("ERROR: wrong humidity. Expected: %f but got: %f", test.response.Hum, station.GetHumidity())
+			if station.Humidity != test.response.Hum {
+				t.Errorf("ERROR: wrong humidity. Expected: %f but got: %f", test.response.Hum, station.Humidity)
 			}
 
-			if station.GetTemperature() != test.response.Temp {
-				t.Errorf("ERROR: wrong temperature. Expected: %f but got: %f", test.response.Temp, station.GetTemperature())
+			if station.Temperature != test.response.Temp {
+				t.Errorf("ERROR: wrong temperature. Expected: %f but got: %f", test.response.Temp, station.Temperature)
 			}
 		})
 	}

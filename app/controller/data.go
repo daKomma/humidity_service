@@ -13,7 +13,15 @@ func (d DataController) GetLive(c *gin.Context) {
 	manager := models.GetManager()
 	manager.UpdateAll()
 
-	c.String(http.StatusOK, "Live Route")
+	stations := make([]models.Station, 0, len(manager.Stations))
+
+	for _, station := range manager.Stations {
+		// stationJSON, _ := json.Marshal(station)
+		// stations = append(stations, stationJSON...)
+		stations = append(stations, *station)
+	}
+
+	c.IndentedJSON(http.StatusOK, stations)
 }
 
 func (d DataController) GetSpecific(c *gin.Context) {
