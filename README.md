@@ -94,9 +94,11 @@ for all or specific station
     method: 'get',
     url: '/data/live/:uuid',
     response: {
-        timestamp: DATE,
-        data: {
-            id: string
+        {
+            id: STRING (uuid of station),
+            url: STRING (URL),
+            added: DATE,
+            updated: DATE,
             hum: NUMBER,
             temp: NUMBER
         }
@@ -115,14 +117,12 @@ for all or specific station
     },
     response: [
         {
-            data: {
-                id: string,
-                url: string,
-                added: date,
-                updated: date,
-                hum: NUMBER,
-                temp: NUMBER
-            }
+            id: STRING (uuid of station),
+            url: STRING (URL),
+            added: DATE,
+            updated: DATE,
+            hum: NUMBER,
+            temp: NUMBER
         }
     ]
 }
