@@ -29,7 +29,7 @@
 
 ## Routes
 
-❗❗❗All dates in this [Format](https://pradeepl.com/blog/dates-in-apis/#:~:text=The%20pattern%20for%20this%20date,in%20your%20RESTful%20web%20APIs.)❗❗❗
+❗❗❗All dates in this UTC Format❗❗❗
 
 ### Microcontroller
 
@@ -96,6 +96,7 @@ for all or specific station
     response: {
         timestamp: DATE,
         data: {
+            id: string
             hum: NUMBER,
             temp: NUMBER
         }
@@ -114,8 +115,11 @@ for all or specific station
     },
     response: [
         {
-            timestamp: DATE,
             data: {
+                id: string,
+                url: string,
+                added: date,
+                updated: date,
                 hum: NUMBER,
                 temp: NUMBER
             }

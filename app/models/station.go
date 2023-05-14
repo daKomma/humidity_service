@@ -33,7 +33,7 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 
 	s.Id = uuid.New()
 	s.Url = checkedUrl
-	s.Added = time.Now()
+	s.Added = time.Now().Local().UTC()
 
 	return s, nil
 }
@@ -55,5 +55,23 @@ func (s *Station) UpdateData() {
 
 	s.Humidity = result.Hum
 	s.Temperature = result.Temp
-	s.Updated = time.Now()
+	s.Updated = time.Now().UTC()
+}
+
+func (s *Station) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Id          string    `json:"id"`
+		Url         string    `json:"url"`
+		Added       time.Time `json:"added"`
+		Updated     time.Time `json:"updated"`
+		Humidity    float32   `json:"hum"`
+		Temperature float32   `json:"temp"`
+	}{
+		Id:          s.Id.String(),
+		Url:         s.Url.String(),
+		Added:       s.Added,
+		Updated:     s.Updated,
+		Humidity:    s.Humidity,
+		Temperature: s.Temperature,
+	})
 }
