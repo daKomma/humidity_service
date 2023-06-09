@@ -1,9 +1,11 @@
 package server
 
 func Init() {
+	NewDb()
+
 	router := NewRouter()
 
-	NewCron()
+	// NewCron()
 
 	router.Run("localhost:8080")
 }

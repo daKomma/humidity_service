@@ -6,7 +6,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    depends_on: mysql
+    depends_on: 
+      - mysql
   mysql:
     platform: linux/x86_64
     image: mysql:8-debian
@@ -19,6 +20,7 @@ services:
       MYSQL_PASSWORD: 'goIsKing'
       # Password for root access
       MYSQL_ROOT_PASSWORD: 'admin1234'
+      SSL-MODE: 'DISABLED' 
     ports:
       # <Port exposed> : <MySQL Port running inside container>
       - '3306:3306'
