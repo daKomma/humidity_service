@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"time"
 
+	"humidity_service/main/db"
+
 	"github.com/google/uuid"
 )
 
@@ -35,6 +37,13 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 	s.Url = checkedUrl
 	s.Added = time.Now().Local().UTC()
 
+	// store new Station in Database
+	db := db.NewDb()
+
+	insertStatement := `INSERT INTO Stations (uuid, url, created)
+	VALUES ($1, $2, $3)`
+	db.Exec(insertStatement, s.Id, s.Url.String(), s.Added)
+
 	return s, nil
 }
 
@@ -56,6 +65,13 @@ func (s *Station) UpdateData() {
 	s.Humidity = result.Hum
 	s.Temperature = result.Temp
 	s.Updated = time.Now().UTC()
+
+	// store new Values in Database
+	db := db.NewDb()
+
+	insertStatement := `INSERT INTO Data (hum, temp, time, station)
+	VALUES ($1, $2, $3, $4)`
+	db.Exec(insertStatement, s.Humidity, s.Temperature, s.Updated, s.Id)
 }
 
 func (s *Station) MarshalJSON() ([]byte, error) {

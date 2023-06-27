@@ -26,8 +26,6 @@ func NewRouter() *gin.Engine {
 
 		router.GET("/health", health.Status)
 
-		router.POST("/register", register.Add)
-
 		data := router.Group("data")
 		{
 			dataController := new(controller.DataController)
@@ -35,6 +33,15 @@ func NewRouter() *gin.Engine {
 			data.GET("/", dataController.GetSpecific)
 
 			data.GET("/live/*id", dataController.GetLive)
+		}
+
+		station := router.Group("station")
+		{
+			station.GET("/*id", register.Get)
+
+			station.POST("/register", register.Add)
+
+			station.DELETE("/:id", register.Remove)
 		}
 
 	})

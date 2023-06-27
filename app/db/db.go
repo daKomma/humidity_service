@@ -1,8 +1,9 @@
-package server
+package db
 
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"sync"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -15,9 +16,8 @@ var (
 
 func NewDb() *sql.DB {
 	onceDb.Do(func() {
-		connectionString := "goaplication:goIsKing@tcp(127.0.0.1:3306)/humservice"
 		var err error
-		db, err = sql.Open("mysql", connectionString)
+		db, err = sql.Open("mysql", os.Getenv("MYSQL_STRING"))
 
 		if err != nil {
 			panic(err)

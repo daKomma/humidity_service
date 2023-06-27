@@ -59,6 +59,10 @@ func (m *Manager) Add(station *Station) {
 	m.Stations[station.Id.String()] = station
 }
 
+func (m *Manager) Remove(id string) {
+	delete(m.Stations, id)
+}
+
 func (m *Manager) UpdateAll() {
 	var wg sync.WaitGroup
 	wg.Add(len(m.Stations))

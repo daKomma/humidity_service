@@ -1,7 +1,9 @@
 package server
 
+import "humidity_service/main/db"
+
 func Init() {
-	NewDb()
+	db.NewDb()
 
 	router := NewRouter()
 
