@@ -13,17 +13,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Controller for managing the Stations
 type RegisterController struct{}
 
+// Get one station by uuid or all stations
 func (r RegisterController) Get(c *gin.Context) {
+	// get uuid of station from url parameter
 	stationId := c.Param("id")
 
+	// Struct to parse the SQL response
 	type Station struct {
 		Uuid    string    `json:"uuid"`
 		Url     string    `json:"url"`
 		Created time.Time `json:"created"`
 	}
 
+	// get DB and close the connection at the end
 	db := db.NewDb()
 
 	defer db.Close()
@@ -37,8 +42,10 @@ func (r RegisterController) Get(c *gin.Context) {
 
 		station := Station{}
 
+		// Scan row and parse into variable
 		err := rows.Scan(&station.Uuid, &station.Url, &station.Created)
 
+		// if no lines than log and return 404
 		if err != nil && err == sql.ErrNoRows {
 			log.Println(err)
 			c.JSON(http.StatusNotFound, gin.H{stationId: "Not Found"})
@@ -52,6 +59,7 @@ func (r RegisterController) Get(c *gin.Context) {
 
 		rows, err := db.Query(query)
 
+		// Check for errors and handle those
 		if err != nil {
 			if err == sql.ErrNoRows {
 				log.Println(err)
@@ -68,6 +76,7 @@ func (r RegisterController) Get(c *gin.Context) {
 
 		station := Station{}
 
+		// Fill array of Stations
 		for rows.Next() {
 			rows.Scan(&station.Uuid, &station.Url, &station.Created)
 			resStations = append(resStations, station)
@@ -78,6 +87,7 @@ func (r RegisterController) Get(c *gin.Context) {
 	}
 }
 
+// Add station to the manager
 func (r RegisterController) Add(c *gin.Context) {
 	type Body struct {
 		Url string `json:"url" binding:"required"`
@@ -85,11 +95,13 @@ func (r RegisterController) Add(c *gin.Context) {
 
 	var body Body
 
+	// get body and if error handle it
 	if err := c.BindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Create new station
 	station := new(models.Station)
 	station.NewStation(body.Url)
 
@@ -99,6 +111,7 @@ func (r RegisterController) Add(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"url": body.Url, "uuid": station.Id})
 }
 
+// Remove station from manager
 func (r RegisterController) Remove(c *gin.Context) {
 	stationId := c.Param("id")
 

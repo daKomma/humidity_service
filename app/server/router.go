@@ -12,6 +12,7 @@ var (
 	once   sync.Once
 )
 
+// Init all routs of the router
 func NewRouter() *gin.Engine {
 	once.Do(func() {
 		router = gin.Default()
@@ -22,10 +23,9 @@ func NewRouter() *gin.Engine {
 
 		health := new(controller.HealthController)
 
-		register := new(controller.RegisterController)
-
 		router.GET("/health", health.Status)
 
+		// data routes
 		data := router.Group("data")
 		{
 			dataController := new(controller.DataController)
@@ -35,8 +35,11 @@ func NewRouter() *gin.Engine {
 			data.GET("/live/*id", dataController.GetLive)
 		}
 
+		// station routes
 		station := router.Group("station")
 		{
+			register := new(controller.RegisterController)
+
 			station.GET("/*id", register.Get)
 
 			station.POST("/register", register.Add)

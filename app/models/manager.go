@@ -17,6 +17,7 @@ var (
 	once    sync.Once
 )
 
+// Get instance of Manager
 func GetManager() *Manager {
 	once.Do(func() {
 		manager = new(Manager)
@@ -29,6 +30,7 @@ func GetManager() *Manager {
 	return manager
 }
 
+// Load station from given file
 func (m *Manager) loadFromFile(path string) {
 	file, err := os.Open(path)
 
@@ -40,6 +42,7 @@ func (m *Manager) loadFromFile(path string) {
 
 	fileScanner.Split(bufio.ScanLines)
 
+	// Foreach line create new Station object
 	for fileScanner.Scan() {
 		url, err := url.ParseRequestURI(fileScanner.Text())
 
@@ -55,14 +58,17 @@ func (m *Manager) loadFromFile(path string) {
 	}
 }
 
+// Add station to manager
 func (m *Manager) Add(station *Station) {
 	m.Stations[station.Id.String()] = station
 }
 
+// Remove station from manager
 func (m *Manager) Remove(id string) {
 	delete(m.Stations, id)
 }
 
+// Update all Stations
 func (m *Manager) UpdateAll() {
 	var wg sync.WaitGroup
 	wg.Add(len(m.Stations))
@@ -77,6 +83,7 @@ func (m *Manager) UpdateAll() {
 	wg.Wait()
 }
 
+// Update station with given uuid
 func (m *Manager) Update(id string) {
 	var wg sync.WaitGroup
 	wg.Add(1)

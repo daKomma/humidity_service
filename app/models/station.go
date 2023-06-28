@@ -26,13 +26,16 @@ type StationResponse struct {
 	Temp float32 `json:"temp"`
 }
 
+// Creates new Station and stores it in database
 func (s *Station) NewStation(rawUrl string) (*Station, error) {
+	// Check if url is valid
 	checkedUrl, err := url.ParseRequestURI(rawUrl)
 
 	if err != nil {
 		return s, err
 	}
 
+	// set values
 	s.Id = uuid.New()
 	s.Url = checkedUrl
 	s.Added = time.Now().UTC()
@@ -53,14 +56,16 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 	return s, nil
 }
 
+// Update data of this Station
 func (s *Station) UpdateData() {
-
+	// get data from the Station
 	resp, err := http.Get(s.Url.String())
 
 	if err != nil {
 		log.Fatalln(err)
 	}
 
+	// read body
 	body, err := ioutil.ReadAll(resp.Body)
 
 	var result StationResponse
@@ -82,6 +87,7 @@ func (s *Station) UpdateData() {
 	db.Exec(insertStatement, s.Humidity, s.Temperature, s.Updated, s.Id)
 }
 
+// Custom MarshalJson for Stations
 func (s *Station) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Id          string    `json:"id"`

@@ -12,6 +12,8 @@ var (
 	onceCron   sync.Once
 )
 
+// Init cron runner
+// Singleton
 func NewCron() *cron.Cron {
 	onceCron.Do(func() {
 		cronRunner = cron.New()
