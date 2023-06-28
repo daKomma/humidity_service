@@ -15,15 +15,13 @@ var (
 )
 
 func NewDb() *sql.DB {
+	var err error
+	db, err = sql.Open("mysql", os.Getenv("MYSQL_STRING"))
 	onceDb.Do(func() {
-		var err error
-		db, err = sql.Open("mysql", os.Getenv("MYSQL_STRING"))
 
 		if err != nil {
 			panic(err)
 		}
-
-		// defer db.Close()
 
 		fmt.Println("DB Connected")
 

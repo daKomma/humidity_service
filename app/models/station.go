@@ -35,14 +35,18 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 
 	s.Id = uuid.New()
 	s.Url = checkedUrl
-	s.Added = time.Now().Local().UTC()
+	s.Added = time.Now().UTC()
 
 	// store new Station in Database
 	db := db.NewDb()
 
 	insertStatement := `INSERT INTO Stations (uuid, url, created)
-	VALUES ($1, $2, $3)`
-	db.Exec(insertStatement, s.Id, s.Url.String(), s.Added)
+	VALUES (?, ?, ?)`
+	_, err = db.Exec(insertStatement, s.Id, s.Url.String(), s.Added)
+
+	if err != nil {
+		log.Println(err)
+	}
 
 	return s, nil
 }
