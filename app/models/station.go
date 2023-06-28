@@ -40,6 +40,8 @@ func (s *Station) NewStation(rawUrl string) (*Station, error) {
 	// store new Station in Database
 	db := db.NewDb()
 
+	defer db.Close()
+
 	insertStatement := `INSERT INTO Stations (uuid, url, created)
 	VALUES (?, ?, ?)`
 	_, err = db.Exec(insertStatement, s.Id, s.Url.String(), s.Added)
@@ -73,8 +75,10 @@ func (s *Station) UpdateData() {
 	// store new Values in Database
 	db := db.NewDb()
 
+	defer db.Close()
+
 	insertStatement := `INSERT INTO Data (hum, temp, time, station)
-	VALUES ($1, $2, $3, $4)`
+	VALUES (?, ?, ?, ?)`
 	db.Exec(insertStatement, s.Humidity, s.Temperature, s.Updated, s.Id)
 }
 
