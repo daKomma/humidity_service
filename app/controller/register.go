@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strings"
 
-	"humidity_service/main/db"
 	"humidity_service/main/models"
 
 	"github.com/gin-gonic/gin"
@@ -87,18 +86,9 @@ func (r RegisterController) Add(c *gin.Context) {
 func (r RegisterController) Remove(c *gin.Context) {
 	stationId := c.Param("id")
 
-	db := db.NewDb()
-	defer db.Close()
+	manager := models.GetManager()
 
-	query := "delete from Stations where uuid = ?"
+	success := manager.Remove(stationId)
 
-	_, err := db.Exec(query, stationId)
-
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusNotFound, gin.H{"success": false, "uuid": stationId})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"success": true, "uuid": stationId})
+	c.JSON(http.StatusOK, gin.H{"success": success, "uuid": stationId})
 }

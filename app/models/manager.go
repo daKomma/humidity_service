@@ -134,9 +134,20 @@ func (m *Manager) getStationFromDB(query string, args []interface{}) ([]DBStatio
 	return resStations, nil
 }
 
-// Remove station from manager
-func (m *Manager) Remove(id string) {
-	delete(m.Stations, id)
+// Remove station from Database
+func (m *Manager) Remove(uuid string) bool {
+	db := db.NewDb()
+	defer db.Close()
+
+	query := "delete from Stations where uuid = ?"
+
+	_, err := db.Exec(query, uuid)
+
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 // Update all Stations
