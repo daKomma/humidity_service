@@ -1,17 +1,15 @@
 package controller
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"humidity_service/main/db"
+	"humidity_service/main/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 // Controller for managing the Stations
@@ -22,70 +20,28 @@ func (r RegisterController) Get(c *gin.Context) {
 	// get uuid of station from url parameter
 	stationId := c.Param("id")
 
-	// Struct to parse the SQL response
-	type Station struct {
-		Uuid    string    `json:"uuid"`
-		Url     string    `json:"url"`
-		Created time.Time `json:"created"`
-	}
+	manager := models.GetManager()
 
-	// get DB and close the connection at the end
-	db := db.NewDb()
-
-	defer db.Close()
+	var stations []models.DBStation
+	var err error
 
 	if stationId != "/" {
 		stationId, _ = strings.CutPrefix(stationId, "/")
 
-		query := "select * from Stations where uuid = ?"
-
-		rows := db.QueryRow(query, stationId)
-
-		station := Station{}
-
-		// Scan row and parse into variable
-		err := rows.Scan(&station.Uuid, &station.Url, &station.Created)
-
-		// if no lines than log and return 404
-		if err != nil && err == sql.ErrNoRows {
-			log.Println(err)
-			c.JSON(http.StatusNotFound, gin.H{stationId: "Not Found"})
-			return
-		}
-
-		c.JSON(http.StatusOK, station)
-		return
+		stations, err = manager.Get(stationId)
 	} else {
-		query := "select * from Stations"
+		stations, err = manager.GetAll()
+	}
 
-		rows, err := db.Query(query)
-
-		// Check for errors and handle those
-		if err != nil {
-			if err == sql.ErrNoRows {
-				log.Println(err)
-				c.JSON(http.StatusNotFound, gin.H{})
-				return
-			}
-
-			log.Println(err)
-			c.JSON(http.StatusInternalServerError, gin.H{})
-			return
-		}
-
-		resStations := []Station{}
-
-		station := Station{}
-
-		// Fill array of Stations
-		for rows.Next() {
-			rows.Scan(&station.Uuid, &station.Url, &station.Created)
-			resStations = append(resStations, station)
-		}
-
-		c.JSON(http.StatusOK, resStations)
+	// if no lines than log and return 404
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
 		return
 	}
+
+	c.JSON(http.StatusOK, stations)
+	return
 }
 
 // Add station to the manager
@@ -116,25 +72,15 @@ func (r RegisterController) Add(c *gin.Context) {
 		return
 	}
 
-	// define values
-	uuid := uuid.New()
-	createdTime := time.Now().UTC()
+	manager := models.GetManager()
 
-	// store new Station in Database
-	db := db.NewDb()
-
-	defer db.Close()
-
-	// insert station into DB
-	insertStatement := `INSERT INTO Stations (uuid, url, created)
-	VALUES (?, ?, ?)`
-	_, err = db.Exec(insertStatement, uuid, checkedUrl.String(), createdTime)
+	station, err := manager.Add(checkedUrl.String())
 
 	if err != nil {
 		log.Println(err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{"url": body.Url, "uuid": uuid})
+	c.JSON(http.StatusOK, station)
 }
 
 // Remove station from database

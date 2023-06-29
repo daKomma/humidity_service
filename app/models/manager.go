@@ -2,14 +2,25 @@ package models
 
 import (
 	"bufio"
+	"humidity_service/main/db"
 	"log"
 	"net/url"
 	"os"
 	"sync"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Manager struct {
 	Stations map[string]*Station
+}
+
+// Struct to parse the SQL response
+type DBStation struct {
+	Uuid    string    `json:"uuid"`
+	Url     string    `json:"url"`
+	Created time.Time `json:"created"`
 }
 
 var (
@@ -54,13 +65,73 @@ func (m *Manager) loadFromFile(path string) {
 
 		station.NewStation(url.String())
 
-		m.Add(station)
+		m.Add("station")
 	}
 }
 
-// Add station to manager
-func (m *Manager) Add(station *Station) {
-	m.Stations[station.Id.String()] = station
+// Add station to Database
+func (m *Manager) Add(url string) ([]DBStation, error) {
+	// define values
+	uuid := uuid.New().String()
+	createdTime := time.Now().UTC()
+
+	db := db.NewDb()
+	defer db.Close()
+
+	// insert station into DB
+	insertStatement := `INSERT INTO Stations (uuid, url, created)
+	VALUES (?, ?, ?)`
+
+	_, err := db.Exec(insertStatement, uuid, url, createdTime)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return m.Get(uuid)
+}
+
+// Get station with given uuid
+func (m *Manager) Get(uuid string) ([]DBStation, error) {
+	args := []interface{}{}
+	query := "select * from Stations where uuid = ?"
+	args = append(args, uuid)
+	return m.getStationFromDB(query, args)
+}
+
+// Get all stations
+func (m *Manager) GetAll() ([]DBStation, error) {
+	args := []interface{}{}
+	query := "select * from Stations"
+	return m.getStationFromDB(query, args)
+}
+
+// helper function to do request to database
+func (m *Manager) getStationFromDB(query string, args []interface{}) ([]DBStation, error) {
+
+	db := db.NewDb()
+
+	defer db.Close()
+
+	rows, err := db.Query(query, args...)
+
+	// Check for errors and handle those
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	resStations := []DBStation{}
+
+	station := DBStation{}
+
+	// Fill array of Stations
+	for rows.Next() {
+		rows.Scan(&station.Uuid, &station.Url, &station.Created)
+		resStations = append(resStations, station)
+	}
+
+	return resStations, nil
 }
 
 // Remove station from manager

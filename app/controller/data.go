@@ -21,7 +21,6 @@ func (d DataController) GetLive(c *gin.Context) {
 	if id != "/" {
 		id, _ = strings.CutPrefix(id, "/")
 
-		manager.Update(id)
 	} else {
 		manager.UpdateAll()
 	}
