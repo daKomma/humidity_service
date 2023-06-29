@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"humidity_service/main/db"
-	"humidity_service/main/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // Controller for managing the Stations
@@ -101,22 +102,57 @@ func (r RegisterController) Add(c *gin.Context) {
 		return
 	}
 
-	// Create new station
-	station := new(models.Station)
-	station.NewStation(body.Url)
+	// Check if url is valid
+	checkedUrl, err := url.ParseRequestURI(body.Url)
 
-	manager := models.GetManager()
-	manager.Add(station)
+	if err != nil {
+		log.Println(err)
+		resp := gin.H{
+			"status": "url not valid",
+			"url":    body.Url,
+			"error":  err.Error()}
 
-	c.JSON(http.StatusOK, gin.H{"url": body.Url, "uuid": station.Id})
+		c.JSON(http.StatusBadRequest, resp)
+		return
+	}
+
+	// define values
+	uuid := uuid.New()
+	createdTime := time.Now().UTC()
+
+	// store new Station in Database
+	db := db.NewDb()
+
+	defer db.Close()
+
+	// insert station into DB
+	insertStatement := `INSERT INTO Stations (uuid, url, created)
+	VALUES (?, ?, ?)`
+	_, err = db.Exec(insertStatement, uuid, checkedUrl, createdTime)
+
+	if err != nil {
+		log.Println(err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"url": body.Url, "uuid": uuid})
 }
 
-// Remove station from manager
+// Remove station from database
 func (r RegisterController) Remove(c *gin.Context) {
 	stationId := c.Param("id")
 
-	manager := models.GetManager()
-	manager.Remove(stationId)
+	db := db.NewDb()
+	defer db.Close()
 
-	c.JSON(http.StatusOK, nil)
+	query := "delete from Stations where uuid = ?"
+
+	_, err := db.Exec(query, stationId)
+
+	if err != nil {
+		log.Println(err)
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "uuid": stationId})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "uuid": stationId})
 }
