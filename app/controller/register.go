@@ -128,7 +128,7 @@ func (r RegisterController) Add(c *gin.Context) {
 	// insert station into DB
 	insertStatement := `INSERT INTO Stations (uuid, url, created)
 	VALUES (?, ?, ?)`
-	_, err = db.Exec(insertStatement, uuid, checkedUrl, createdTime)
+	_, err = db.Exec(insertStatement, uuid, checkedUrl.String(), createdTime)
 
 	if err != nil {
 		log.Println(err)
