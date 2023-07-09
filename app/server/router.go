@@ -32,6 +32,8 @@ func NewRouter() *gin.Engine {
 
 			data.GET("/", dataController.GetSpecific)
 
+			data.GET("/all", dataController.GetAll)
+
 			data.GET("/live/*id", dataController.GetLive)
 		}
 

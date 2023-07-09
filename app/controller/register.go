@@ -27,9 +27,9 @@ func (r RegisterController) Get(c *gin.Context) {
 	if stationId != "/" {
 		stationId, _ = strings.CutPrefix(stationId, "/")
 
-		stations, err = manager.Get(stationId)
+		stations, err = manager.GetStation(stationId)
 	} else {
-		stations, err = manager.GetAll()
+		stations, err = manager.GetAllStation()
 	}
 
 	// if no lines than log and return 404
@@ -87,6 +87,12 @@ func (r RegisterController) Remove(c *gin.Context) {
 	stationId := c.Param("id")
 
 	manager := models.GetManager()
+
+	if strings.Compare(stationId, "all") == 0 {
+		success := manager.RemoveAll()
+
+		c.JSON(http.StatusOK, gin.H{"success": success})
+	}
 
 	success := manager.Remove(stationId)
 

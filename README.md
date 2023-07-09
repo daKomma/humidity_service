@@ -16,6 +16,8 @@
   - [ ] something to high
   - [ ] health check 
 
+Pause Flag for station
+
 ### Ideal Humidity
 - winter 30-40
 - summer 50-60

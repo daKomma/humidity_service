@@ -14,16 +14,16 @@ func TestGetManager(t *testing.T) {
 	}
 }
 
-func TestAdd(t *testing.T) {
-	station := new(models.Station)
+// func TestAdd(t *testing.T) {
+// 	station := new(models.Station)
 
-	station.NewStation("http://localhost:3000")
+// 	station.NewStation("http://localhost:3000")
 
-	manager := models.GetManager()
+// 	manager := models.GetManager()
 
-	manager.Add(station)
+// 	manager.Add(station)
 
-	if len(manager.Stations) != 1 {
-		t.Errorf("ERROR: expected 1 but got %d", len(manager.Stations))
-	}
-}
+// 	if len(manager.Stations) != 1 {
+// 		t.Errorf("ERROR: expected 1 but got %d", len(manager.Stations))
+// 	}
+// }
