@@ -19,27 +19,17 @@ func (d *DataController) GetLive(c *gin.Context) {
 	// get station id from url parameter
 	id := c.Param("id")
 
+	var stations []models.DBStation
+
 	if id != "/" {
 		id, _ = strings.CutPrefix(id, "/")
-
+		stations, _ = manager.GetStation(id)
 	} else {
-		// allStation, _ := manager.GetAllStation()
-		// manager.Update(allStation)
-		stations, _ := manager.GetAllStation()
-		c.JSON(http.StatusOK, manager.LiveData(stations))
-		return
+		stations, _ = manager.GetAllStation()
 	}
 
-	// // Create array of stations and fill it
-	// stations := make([]models.Station, 0, len(manager.Stations))
-
-	// for _, station := range manager.Stations {
-	// 	stations = append(stations, *station)
-	// }
-
-	// Send all found Stations
-	// c.IndentedJSON(http.StatusOK, stations)
-
+	c.JSON(http.StatusOK, manager.LiveData(stations))
+	return
 }
 
 // TODO
