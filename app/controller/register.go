@@ -89,7 +89,7 @@ func (r RegisterController) Remove(c *gin.Context) {
 	manager := models.GetManager()
 
 	if strings.Compare(stationId, "all") == 0 {
-		success := manager.RemoveAll()
+		success := manager.RemoveAllStation()
 
 		c.JSON(http.StatusOK, gin.H{"success": success})
 	}

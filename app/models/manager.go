@@ -166,14 +166,11 @@ func (m *Manager) Remove(uuid string) bool {
 }
 
 // Remove all station from Database => only in dev
-func (m *Manager) RemoveAll() bool {
+func (m *Manager) RemoveAllStation() bool {
 	db := db.NewDb()
 	defer db.Close()
 
-	// query := "delete from Data"
-	// _, err := db.Exec(query)
-	query := "delete from Data where uuid != '-1'"
-
+	query := "delete from Stations"
 	_, err := db.Exec(query)
 
 	if err != nil {
