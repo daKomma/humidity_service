@@ -1,11 +1,27 @@
 version: '3.9'
 services:
-  mock:
+  mock-1:
     build:
       context: ./mock/server
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      PORT: 3000
+      HUM: 60.6
+      TEMP: 20.9
+    depends_on: 
+      - mysql
+  mock-2:
+    build:
+      context: ./mock/server
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      HUM: 33.3
+      TEMP: 35.7
     depends_on: 
       - mysql
   mysql:

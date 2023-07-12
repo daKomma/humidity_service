@@ -195,14 +195,14 @@ func (m *Manager) LiveData(stations []DBStation) any {
 
 	resp := []stationLiveData{}
 
-	for _, station := range stations {
-		go func() {
+	for s := range stations {
+		go func(station *DBStation) {
 			stationData := m.getStationData(station.Url)
-			liveData := &stationLiveData{station, stationData}
+			liveData := &stationLiveData{*station, stationData}
 
 			resp = append(resp, *liveData)
 			wg.Done()
-		}()
+		}(&stations[s])
 	}
 
 	wg.Wait()
@@ -215,14 +215,14 @@ func (m *Manager) Update(stations []DBStation) {
 	var wg sync.WaitGroup
 	wg.Add(len(stations))
 
-	for _, station := range stations {
-		go func() {
+	for s := range stations {
+		go func(station *DBStation) {
 			stationData := m.getStationData(station.Url)
-			isSaved := m.saveStationData(&station, &stationData)
+			isSaved := m.saveStationData(station, &stationData)
 
 			log.Println("Station: %s status: %t", station.Uuid, isSaved)
 			wg.Done()
-		}()
+		}(&stations[s])
 	}
 
 	wg.Wait()

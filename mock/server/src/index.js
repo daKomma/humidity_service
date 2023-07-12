@@ -2,15 +2,15 @@ import express from 'express';
 
 const app = express();
 
-app.listen(3000, () =>
-  console.log('Mock Server is listening on port 3000!'),
+app.listen(process.env.PORT, () =>
+  console.log('Mock Server is listening on port '+process.env.PORT+'!'),
 );
 
 app.get('/data', (req, res) => {
     console.log("Request Time: " + new Date().toISOString())
     console.log("==========================================")
     res.json({
-        "hum": 50.5,
-        "temp": 25.5
+        "hum": parseFloat(process.env.HUM) || 50.5,
+        "temp": parseFloat(process.env.TEMP) || 25.5
     });
 });
