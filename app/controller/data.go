@@ -2,7 +2,6 @@ package controller
 
 import (
 	"humidity_service/main/models"
-	"log"
 	"net/http"
 	"strings"
 
@@ -37,17 +36,13 @@ func (d DataController) GetSpecific(c *gin.Context) {
 	c.String(http.StatusOK, "Specific Route")
 }
 
-func (d *DataController) GetAll(c *gin.Context) {
+func (d *DataController) Update(c *gin.Context) {
 	manager := models.GetManager()
-	data, err := manager.GetAllData()
 
-	// if no lines than log and return 404
-	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
-		return
-	}
+	stations, _ := manager.GetAllStation()
 
-	c.JSON(http.StatusOK, data)
+	manager.Update(stations)
+
+	c.JSON(http.StatusOK, gin.H{})
 	return
 }

@@ -7,7 +7,7 @@ func Init() {
 
 	router := NewRouter()
 
-	// NewCron()
+	NewCron()
 
 	router.Run("localhost:8080")
 }

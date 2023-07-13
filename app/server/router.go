@@ -32,7 +32,7 @@ func NewRouter() *gin.Engine {
 
 			data.GET("/", dataController.GetSpecific)
 
-			data.GET("/all", dataController.GetAll)
+			data.GET("/update", dataController.Update)
 
 			data.GET("/live/*id", dataController.GetLive)
 		}

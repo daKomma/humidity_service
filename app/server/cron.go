@@ -1,7 +1,8 @@
 package server
 
 import (
-	"fmt"
+	"humidity_service/main/models"
+	"os"
 	"sync"
 
 	"github.com/robfig/cron"
@@ -18,7 +19,12 @@ func NewCron() *cron.Cron {
 	onceCron.Do(func() {
 		cronRunner = cron.New()
 
-		cronRunner.AddFunc("* * * * * *", func() { fmt.Printf("I am running every second!") })
+		manager := models.GetManager()
+
+		cronRunner.AddFunc(os.Getenv("CRON_INTERVAL"), func() {
+			stations, _ := manager.GetAllStation()
+			manager.Update(stations)
+		})
 
 		cronRunner.Start()
 	})

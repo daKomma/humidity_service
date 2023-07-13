@@ -179,9 +179,7 @@ func (m *Manager) Update(stations []DBStation) {
 	for s := range stations {
 		go func(station *DBStation) {
 			stationData := m.getStationData(station.Url)
-			isSaved := m.saveStationData(station, &stationData)
-
-			log.Println("Station: %s status: %t", station.Uuid, isSaved)
+			m.saveStationData(station, &stationData)
 			wg.Done()
 		}(&stations[s])
 	}
