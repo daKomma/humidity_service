@@ -1,14 +1,11 @@
 package models
 
 import (
-	"bufio"
 	"encoding/json"
 	"humidity_service/main/db"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"os"
 	"sync"
 	"time"
 
@@ -16,7 +13,6 @@ import (
 )
 
 type Manager struct {
-	Stations map[string]*Station
 }
 
 // Struct to parse the SQL response
@@ -47,41 +43,9 @@ var (
 func GetManager() *Manager {
 	once.Do(func() {
 		manager = new(Manager)
-
-		manager.Stations = make(map[string]*Station)
-
-		manager.loadFromFile(os.Getenv("URLPATH"))
 	})
 
 	return manager
-}
-
-// Load station from given file
-func (m *Manager) loadFromFile(path string) {
-	file, err := os.Open(path)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fileScanner := bufio.NewScanner(file)
-
-	fileScanner.Split(bufio.ScanLines)
-
-	// Foreach line create new Station object
-	for fileScanner.Scan() {
-		url, err := url.ParseRequestURI(fileScanner.Text())
-
-		if err != nil {
-			continue
-		}
-
-		station := new(Station)
-
-		station.NewStation(url.String())
-
-		m.Add("station")
-	}
 }
 
 // Add station to Database
