@@ -21,7 +21,7 @@ func (r RegisterController) Get(c *gin.Context) {
 
 	manager := models.GetManager()
 
-	var stations []models.DBStation
+	var stations []models.Station
 	var err error
 
 	if stationId != "/" {

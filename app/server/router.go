@@ -30,9 +30,9 @@ func NewRouter() *gin.Engine {
 		{
 			dataController := new(controller.DataController)
 
-			data.GET("/", dataController.GetSpecific)
+			data.POST("/", dataController.GetSpecific)
 
-			data.GET("/update", dataController.Update)
+			data.POST("/update", dataController.Update)
 
 			data.GET("/live/*id", dataController.GetLive)
 		}

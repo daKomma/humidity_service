@@ -16,20 +16,24 @@ type Manager struct {
 }
 
 // Struct to parse the SQL response
-type DBStation struct {
+type Station struct {
 	Uuid    string    `json:"uuid"`
 	Url     string    `json:"url"`
 	Created time.Time `json:"created"`
 }
 
-type DBStationData struct {
-	Hum         string    `json:"hum"`
-	Temp        string    `json:"temp"`
-	Time        time.Time `json:"time"`
-	StationUUID time.Time `json:"station"`
+type Data struct {
+	Hum  float32   `json:"hum"`
+	Temp float32   `json:"temp"`
+	Time time.Time `json:"time"`
 }
 
-type DBStationResponse struct {
+type StationData struct {
+	Station Station `json:"station"`
+	Data    []Data  `json:"data"`
+}
+
+type StationResponse struct {
 	Hum  float32 `json:"hum"`
 	Temp float32 `json:"temp"`
 }
@@ -49,7 +53,7 @@ func GetManager() *Manager {
 }
 
 // Add station to Database
-func (m *Manager) Add(url string) ([]DBStation, error) {
+func (m *Manager) Add(url string) ([]Station, error) {
 	// define values
 	uuid := uuid.New().String()
 	createdTime := time.Now().UTC()
@@ -71,7 +75,7 @@ func (m *Manager) Add(url string) ([]DBStation, error) {
 }
 
 // Get station with given uuid
-func (m *Manager) GetStation(uuid string) ([]DBStation, error) {
+func (m *Manager) GetStation(uuid string) ([]Station, error) {
 	args := []interface{}{}
 	query := "select * from Stations where uuid = ?"
 	args = append(args, uuid)
@@ -79,14 +83,14 @@ func (m *Manager) GetStation(uuid string) ([]DBStation, error) {
 }
 
 // Get all stations
-func (m *Manager) GetAllStation() ([]DBStation, error) {
+func (m *Manager) GetAllStation() ([]Station, error) {
 	args := []interface{}{}
 	query := "select * from Stations"
 	return m.getStationFromDB(query, args)
 }
 
 // helper function to do request to database
-func (m *Manager) getStationFromDB(query string, args []interface{}) ([]DBStation, error) {
+func (m *Manager) getStationFromDB(query string, args []interface{}) ([]Station, error) {
 
 	db := db.NewDb()
 
@@ -100,9 +104,9 @@ func (m *Manager) getStationFromDB(query string, args []interface{}) ([]DBStatio
 		return nil, err
 	}
 
-	resStations := []DBStation{}
+	resStations := []Station{}
 
-	station := DBStation{}
+	station := Station{}
 
 	// Fill array of Stations
 	for rows.Next() {
@@ -144,22 +148,26 @@ func (m *Manager) RemoveAllStation() bool {
 	return true
 }
 
-func (m *Manager) LiveData(stations []DBStation) any {
+func (m *Manager) LiveData(stations []Station) []StationData {
 
 	var wg sync.WaitGroup
 	wg.Add(len(stations))
 
-	type stationLiveData struct {
-		DBStation         `json:"station"`
-		DBStationResponse `json:"data"`
-	}
+	// type stationLiveData struct {
+	// 	Station         `json:"station"`
+	// 	StationResponse `json:"data"`
+	// }
 
-	resp := []stationLiveData{}
+	resp := []StationData{}
 
 	for s := range stations {
-		go func(station *DBStation) {
+		go func(station *Station) {
 			stationData := m.getStationData(station.Url)
-			liveData := &stationLiveData{*station, stationData}
+
+			var data []Data
+			data = append(data, Data{stationData.Hum, stationData.Temp, time.Now()})
+
+			liveData := &StationData{*station, data}
 
 			resp = append(resp, *liveData)
 			wg.Done()
@@ -172,12 +180,12 @@ func (m *Manager) LiveData(stations []DBStation) any {
 }
 
 // Update all Stations
-func (m *Manager) Update(stations []DBStation) {
+func (m *Manager) Update(stations []Station) {
 	var wg sync.WaitGroup
 	wg.Add(len(stations))
 
 	for s := range stations {
-		go func(station *DBStation) {
+		go func(station *Station) {
 			stationData := m.getStationData(station.Url)
 			m.saveStationData(station, &stationData)
 			wg.Done()
@@ -188,7 +196,7 @@ func (m *Manager) Update(stations []DBStation) {
 }
 
 // get Data from Station
-func (m *Manager) getStationData(url string) DBStationResponse {
+func (m *Manager) getStationData(url string) StationResponse {
 	// get data from the Station
 	resp, err := http.Get(url)
 
@@ -200,7 +208,7 @@ func (m *Manager) getStationData(url string) DBStationResponse {
 	body, err := ioutil.ReadAll(resp.Body)
 
 	// parse body data
-	var result DBStationResponse
+	var result StationResponse
 	if err := json.Unmarshal(body, &result); err != nil {
 		log.Fatalln(err)
 	}
@@ -209,7 +217,7 @@ func (m *Manager) getStationData(url string) DBStationResponse {
 }
 
 // stores station data in database
-func (m *Manager) saveStationData(station *DBStation, data *DBStationResponse) bool {
+func (m *Manager) saveStationData(station *Station, data *StationResponse) bool {
 	// store new Values in Database
 	db := db.NewDb()
 
@@ -227,22 +235,48 @@ func (m *Manager) saveStationData(station *DBStation, data *DBStationResponse) b
 }
 
 // Get station with given uuid
-func (m *Manager) GetStationData(uuid string) ([]DBStationData, error) {
+func (m *Manager) GetStationData(uuid string) StationData {
 	args := []interface{}{}
-	query := "select * from Data where station = ?"
+	query := "select hum, temp, time from Data where station = ?"
 	args = append(args, uuid)
-	return m.getDataFromDB(query, args)
+
+	var data []Data
+	dbData, _ := m.getDataFromDB(query, args)
+
+	station, _ := m.GetStation(uuid)
+
+	data = append(data, dbData...)
+
+	stationData := StationData{station[0], data}
+
+	return stationData
 }
 
 // Get all stations
-func (m *Manager) GetAllData() ([]DBStationData, error) {
-	args := []interface{}{}
-	query := "select * from Data"
-	return m.getDataFromDB(query, args)
+func (m *Manager) GetAllData() []StationData {
+	allStation, _ := m.GetAllStation()
+
+	var wg sync.WaitGroup
+	wg.Add(len(allStation))
+
+	var stationData []StationData
+
+	for s := range allStation {
+		go func(station *Station) {
+
+			stationData = append(stationData, m.GetStationData(station.Uuid))
+
+			wg.Done()
+		}(&allStation[s])
+	}
+
+	wg.Wait()
+
+	return stationData
 }
 
 // helper function to do request to database
-func (m *Manager) getDataFromDB(query string, args []interface{}) ([]DBStationData, error) {
+func (m *Manager) getDataFromDB(query string, args []interface{}) ([]Data, error) {
 
 	db := db.NewDb()
 
@@ -256,13 +290,14 @@ func (m *Manager) getDataFromDB(query string, args []interface{}) ([]DBStationDa
 		return nil, err
 	}
 
-	resData := []DBStationData{}
+	resData := []Data{}
 
-	data := DBStationData{}
+	data := Data{}
 
 	// Fill array of Stations
 	for rows.Next() {
-		rows.Scan(&data.Hum, &data.Temp, &data.Time, &data.StationUUID)
+		rows.Scan(&data.Hum, &data.Temp, &data.Time)
+
 		resData = append(resData, data)
 	}
 
