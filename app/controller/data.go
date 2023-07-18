@@ -34,7 +34,7 @@ func (d *DataController) GetLive(c *gin.Context) {
 // TODO
 func (d DataController) GetSpecific(c *gin.Context) {
 	type Body struct {
-		Uuid string `json:"uuid"`
+		Uuid string `json:"uuid" required:true`
 	}
 
 	var body Body
@@ -47,7 +47,21 @@ func (d DataController) GetSpecific(c *gin.Context) {
 
 	manager := models.GetManager()
 
-	data := manager.GetAllData()
+	var data []models.StationData
+	var err error
+
+	if body.Uuid != "" {
+		data, err = manager.GetStationData(body.Uuid)
+	} else {
+		data, err = manager.GetAllData()
+	}
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, data)
 }

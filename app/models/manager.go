@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"humidity_service/main/db"
 	"io/ioutil"
 	"log"
@@ -112,6 +113,10 @@ func (m *Manager) getStationFromDB(query string, args []interface{}) ([]Station,
 	for rows.Next() {
 		rows.Scan(&station.Uuid, &station.Url, &station.Created)
 		resStations = append(resStations, station)
+	}
+
+	if len(resStations) == 0 {
+		return nil, errors.New("No Station(s) found")
 	}
 
 	return resStations, nil
@@ -235,44 +240,77 @@ func (m *Manager) saveStationData(station *Station, data *StationResponse) bool 
 }
 
 // Get station with given uuid
-func (m *Manager) GetStationData(uuid string) StationData {
+func (m *Manager) GetStationData(uuid string) ([]StationData, error) {
 	args := []interface{}{}
 	query := "select hum, temp, time from Data where station = ?"
 	args = append(args, uuid)
 
-	var data []Data
-	dbData, _ := m.getDataFromDB(query, args)
+	data, err := m.getDataFromDB(query, args)
 
-	station, _ := m.GetStation(uuid)
+	if err != nil {
+		return nil, err
+	}
 
-	data = append(data, dbData...)
+	station, err := m.GetStation(uuid)
 
-	stationData := StationData{station[0], data}
+	if err != nil {
+		return nil, err
+	}
 
-	return stationData
+	stationData := []StationData{{station[0], data}}
+
+	return stationData, nil
 }
 
 // Get all stations
-func (m *Manager) GetAllData() []StationData {
-	allStation, _ := m.GetAllStation()
+func (m *Manager) GetAllData() ([]StationData, error) {
+	allStation, err := m.GetAllStation()
+
+	if err != nil {
+		return nil, err
+	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(allStation))
 
 	var stationData []StationData
 
+	stationChanel := make(chan []StationData)
+	errorChanel := make(chan error)
+
+	go func() {
+		wg.Wait()
+		close(stationChanel)
+		close(errorChanel)
+	}()
+
 	for s := range allStation {
-		go func(station *Station) {
+		wg.Add(1)
+		go func(station *Station, stations chan []StationData, errors chan error) {
+			defer wg.Done()
 
-			stationData = append(stationData, m.GetStationData(station.Uuid))
+			data, err := m.GetStationData(station.Uuid)
 
-			wg.Done()
-		}(&allStation[s])
+			if err != nil {
+				errorChanel <- err
+				return
+			}
+
+			stationChanel <- data
+
+		}(&allStation[s], stationChanel, errorChanel)
 	}
 
-	wg.Wait()
+	for err := range errorChanel {
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	return stationData
+	for data := range stationChanel {
+		stationData = append(stationData, data...)
+	}
+
+	return stationData, nil
 }
 
 // helper function to do request to database
