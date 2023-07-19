@@ -274,36 +274,22 @@ func (m *Manager) GetAllData() ([]StationData, error) {
 
 	var stationData []StationData
 
-	stationChanel := make(chan []StationData)
-	errorChanel := make(chan error)
+	stationChanel := make(chan []StationData, 2)
+	errorChanel := make(chan error, 2)
 
-	go func() {
-		wg.Wait()
-		close(stationChanel)
-		close(errorChanel)
-	}()
-
+	wg.Add(2)
 	for s := range allStation {
-		wg.Add(1)
-		go func(station *Station, stations chan []StationData, errors chan error) {
-			defer wg.Done()
-
-			data, err := m.GetStationData(station.Uuid)
-
-			if err != nil {
-				errorChanel <- err
-				return
-			}
-
-			stationChanel <- data
-
-		}(&allStation[s], stationChanel, errorChanel)
+		m.GetStationDataAsChanel(&allStation[s], stationChanel, errorChanel, func() { wg.Done() })
 	}
 
+	go func() {
+		defer close(stationChanel)
+		defer close(errorChanel)
+		wg.Wait()
+	}()
+
 	for err := range errorChanel {
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	for data := range stationChanel {
@@ -311,6 +297,21 @@ func (m *Manager) GetAllData() ([]StationData, error) {
 	}
 
 	return stationData, nil
+}
+
+func (m *Manager) GetStationDataAsChanel(station *Station, stations chan<- []StationData, errors chan<- error, onExit func()) {
+	go func() {
+		defer onExit()
+
+		data, err := m.GetStationData(station.Uuid)
+
+		if err != nil {
+			errors <- err
+			return
+		}
+
+		stations <- data
+	}()
 }
 
 // helper function to do request to database

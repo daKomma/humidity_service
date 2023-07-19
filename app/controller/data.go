@@ -34,14 +34,16 @@ func (d *DataController) GetLive(c *gin.Context) {
 // TODO
 func (d DataController) GetSpecific(c *gin.Context) {
 	type Body struct {
-		Uuid string `json:"uuid" required:true`
+		Uuid string `json:"uuid"`
 	}
 
 	var body Body
 
 	// get body and if error handle it
 	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Wrong body",
+		})
 		return
 	}
 
