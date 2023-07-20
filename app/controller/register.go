@@ -34,8 +34,9 @@ func (r RegisterController) Get(c *gin.Context) {
 
 	// if no lines than log and return 404
 	if err != nil {
-		log.Println(err)
-		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
@@ -76,7 +77,10 @@ func (r RegisterController) Add(c *gin.Context) {
 	station, err := manager.Add(checkedUrl.String())
 
 	if err != nil {
-		log.Println(err)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, station)

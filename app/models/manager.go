@@ -16,6 +16,7 @@ import (
 type Manager struct {
 }
 
+// TODO Add Place and Paused flag
 // Struct to parse the SQL response
 type Station struct {
 	Uuid    string    `json:"uuid"`
@@ -55,6 +56,12 @@ func GetManager() *Manager {
 
 // Add station to Database
 func (m *Manager) Add(url string) ([]Station, error) {
+	isValid, err := m.testStation(url)
+
+	if !isValid {
+		return nil, err
+	}
+
 	// define values
 	uuid := uuid.New().String()
 	createdTime := time.Now().UTC()
@@ -66,13 +73,23 @@ func (m *Manager) Add(url string) ([]Station, error) {
 	insertStatement := `INSERT INTO Stations (uuid, url, created)
 	VALUES (?, ?, ?)`
 
-	_, err := db.Exec(insertStatement, uuid, url, createdTime)
+	_, err = db.Exec(insertStatement, uuid, url, createdTime)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return m.GetStation(uuid)
+}
+
+func (m *Manager) testStation(url string) (bool, error) {
+	_, err := m.getStationData(url)
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // Get station with given uuid
@@ -156,57 +173,98 @@ func (m *Manager) RemoveAllStation() bool {
 func (m *Manager) LiveData(stations []Station) []StationData {
 
 	var wg sync.WaitGroup
-	wg.Add(len(stations))
 
-	// type stationLiveData struct {
-	// 	Station         `json:"station"`
-	// 	StationResponse `json:"data"`
-	// }
+	countStations := len(stations)
+
+	dataChanel := make(chan StationData, countStations)
+	wg.Add(countStations)
+
+	for s := range stations {
+		m.getLiveData(&stations[s], dataChanel, func() { wg.Done() })
+	}
+
+	go func() {
+		defer close(dataChanel)
+		wg.Wait()
+	}()
 
 	resp := []StationData{}
 
-	for s := range stations {
-		go func(station *Station) {
-			stationData := m.getStationData(station.Url)
-
-			var data []Data
-			data = append(data, Data{stationData.Hum, stationData.Temp, time.Now()})
-
-			liveData := &StationData{*station, data}
-
-			resp = append(resp, *liveData)
-			wg.Done()
-		}(&stations[s])
+	for data := range dataChanel {
+		resp = append(resp, data)
 	}
 
-	wg.Wait()
-
 	return resp
+}
+
+func (m *Manager) getLiveData(station *Station, stData chan<- StationData, onExit func()) {
+	go func() {
+		defer onExit()
+		stationData, err := m.getStationData(station.Url)
+
+		if err != nil {
+			// TODO do something... pause or ignore????
+			return
+		}
+
+		data := []Data{{stationData.Hum, stationData.Temp, time.Now()}}
+
+		stData <- StationData{*station, data}
+	}()
 }
 
 // Update all Stations
 func (m *Manager) Update(stations []Station) {
 	var wg sync.WaitGroup
-	wg.Add(len(stations))
+
+	countStations := len(stations)
+
+	failedChanel := make(chan string, countStations)
+	successChanel := make(chan bool, countStations)
+	wg.Add(countStations)
 
 	for s := range stations {
-		go func(station *Station) {
-			stationData := m.getStationData(station.Url)
-			m.saveStationData(station, &stationData)
-			wg.Done()
-		}(&stations[s])
+		m.addStationData(&stations[s], failedChanel, successChanel, func() { wg.Done() })
 	}
 
-	wg.Wait()
+	go func() {
+		defer close(failedChanel)
+		defer close(successChanel)
+		wg.Wait()
+	}()
+
+	for status := range successChanel {
+		if !status {
+			log.Println("Failed to save Data")
+		}
+	}
+
+	// TODO Add to set station on paused
+	// for data := range failedChanel {
+
+	// }
+}
+
+func (m *Manager) addStationData(station *Station, failed chan<- string, success chan<- bool, onExit func()) {
+	go func() {
+		defer onExit()
+		stationData, err := m.getStationData(station.Url)
+
+		if err != nil {
+			failed <- station.Uuid
+		}
+
+		success <- m.saveStationData(station, stationData)
+	}()
 }
 
 // get Data from Station
-func (m *Manager) getStationData(url string) StationResponse {
+func (m *Manager) getStationData(url string) (*StationResponse, error) {
 	// get data from the Station
 	resp, err := http.Get(url)
 
 	if err != nil {
-		log.Fatalln(err)
+		return nil, errors.New("Something is wrong with the URL")
 	}
 
 	// read body
@@ -215,10 +273,10 @@ func (m *Manager) getStationData(url string) StationResponse {
 	// parse body data
 	var result StationResponse
 	if err := json.Unmarshal(body, &result); err != nil {
-		log.Fatalln(err)
+		return nil, errors.New("Something is wrong with the Path or Response")
 	}
 
-	return result
+	return &result, nil
 }
 
 // stores station data in database
@@ -240,7 +298,7 @@ func (m *Manager) saveStationData(station *Station, data *StationResponse) bool 
 }
 
 // Get station with given uuid
-func (m *Manager) GetStationData(uuid string) ([]StationData, error) {
+func (m *Manager) GetDBStationData(uuid string) ([]StationData, error) {
 	args := []interface{}{}
 	query := "select hum, temp, time from Data where station = ?"
 	args = append(args, uuid)
@@ -270,16 +328,18 @@ func (m *Manager) GetAllData() ([]StationData, error) {
 		return nil, err
 	}
 
+	countStations := len(allStation)
+
 	var wg sync.WaitGroup
 
 	var stationData []StationData
 
-	stationChanel := make(chan []StationData, 2)
-	errorChanel := make(chan error, 2)
+	stationChanel := make(chan []StationData, countStations)
+	errorChanel := make(chan error, countStations)
+	wg.Add(countStations)
 
-	wg.Add(2)
 	for s := range allStation {
-		m.GetStationDataAsChanel(&allStation[s], stationChanel, errorChanel, func() { wg.Done() })
+		m.getStationDataAsChanel(&allStation[s], stationChanel, errorChanel, func() { wg.Done() })
 	}
 
 	go func() {
@@ -299,11 +359,11 @@ func (m *Manager) GetAllData() ([]StationData, error) {
 	return stationData, nil
 }
 
-func (m *Manager) GetStationDataAsChanel(station *Station, stations chan<- []StationData, errors chan<- error, onExit func()) {
+func (m *Manager) getStationDataAsChanel(station *Station, stations chan<- []StationData, errors chan<- error, onExit func()) {
 	go func() {
 		defer onExit()
 
-		data, err := m.GetStationData(station.Uuid)
+		data, err := m.GetDBStationData(station.Uuid)
 
 		if err != nil {
 			errors <- err

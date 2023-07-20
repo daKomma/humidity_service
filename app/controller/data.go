@@ -19,19 +19,25 @@ func (d *DataController) GetLive(c *gin.Context) {
 	id := c.Param("id")
 
 	var stations []models.Station
+	var err error
 
 	if id != "/" {
 		id, _ = strings.CutPrefix(id, "/")
-		stations, _ = manager.GetStation(id)
+		stations, err = manager.GetStation(id)
 	} else {
-		stations, _ = manager.GetAllStation()
+		stations, err = manager.GetAllStation()
+	}
+
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error": err.Error(),
+		})
+		return
 	}
 
 	c.JSON(http.StatusOK, manager.LiveData(stations))
-	return
 }
 
-// TODO
 func (d DataController) GetSpecific(c *gin.Context) {
 	type Body struct {
 		Uuid string `json:"uuid"`
@@ -53,7 +59,7 @@ func (d DataController) GetSpecific(c *gin.Context) {
 	var err error
 
 	if body.Uuid != "" {
-		data, err = manager.GetStationData(body.Uuid)
+		data, err = manager.GetDBStationData(body.Uuid)
 	} else {
 		data, err = manager.GetAllData()
 	}
@@ -71,7 +77,14 @@ func (d DataController) GetSpecific(c *gin.Context) {
 func (d *DataController) Update(c *gin.Context) {
 	manager := models.GetManager()
 
-	stations, _ := manager.GetAllStation()
+	stations, err := manager.GetAllStation()
+
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	manager.Update(stations)
 
