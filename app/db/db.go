@@ -40,6 +40,7 @@ func initTables(db *sql.DB) {
 		uuid VARCHAR(255), 
 		url VARCHAR(255),
 		created DATETIME,
+		place VARCHAR(255),
 		PRIMARY KEY (uuid)
 		)`
 

@@ -47,7 +47,8 @@ func (r RegisterController) Get(c *gin.Context) {
 // Add station to the manager
 func (r RegisterController) Add(c *gin.Context) {
 	type Body struct {
-		Url string `json:"url" binding:"required"`
+		Url   string `json:"url" binding:"required"`
+		Place string `json:"place" binding:"required"`
 	}
 
 	var body Body
@@ -74,7 +75,7 @@ func (r RegisterController) Add(c *gin.Context) {
 
 	manager := models.GetManager()
 
-	station, err := manager.Add(checkedUrl.String())
+	station, err := manager.Add(checkedUrl.String(), body.Place)
 
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{

@@ -22,6 +22,7 @@ type Station struct {
 	Uuid    string    `json:"uuid"`
 	Url     string    `json:"url"`
 	Created time.Time `json:"created"`
+	Place   string    `json:"place"`
 }
 
 type Data struct {
@@ -55,7 +56,7 @@ func GetManager() *Manager {
 }
 
 // Add station to Database
-func (m *Manager) Add(url string) ([]Station, error) {
+func (m *Manager) Add(url string, place string) ([]Station, error) {
 	isValid, err := m.testStation(url)
 
 	if !isValid {
@@ -70,10 +71,10 @@ func (m *Manager) Add(url string) ([]Station, error) {
 	defer db.Close()
 
 	// insert station into DB
-	insertStatement := `INSERT INTO Stations (uuid, url, created)
-	VALUES (?, ?, ?)`
+	insertStatement := `INSERT INTO Stations (uuid, url, created, place)
+	VALUES (?, ?, ?, ?)`
 
-	_, err = db.Exec(insertStatement, uuid, url, createdTime)
+	_, err = db.Exec(insertStatement, uuid, url, createdTime, place)
 
 	if err != nil {
 		return nil, err
@@ -128,7 +129,7 @@ func (m *Manager) getStationFromDB(query string, args []interface{}) ([]Station,
 
 	// Fill array of Stations
 	for rows.Next() {
-		rows.Scan(&station.Uuid, &station.Url, &station.Created)
+		rows.Scan(&station.Uuid, &station.Url, &station.Created, &station.Place)
 		resStations = append(resStations, station)
 	}
 
