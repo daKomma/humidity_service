@@ -19,10 +19,10 @@ type Manager struct {
 // TODO Add Place and Paused flag
 // Struct to parse the SQL response
 type Station struct {
-	Uuid    string    `json:"uuid"`
-	Url     string    `json:"url"`
-	Created time.Time `json:"created"`
-	Place   string    `json:"place"`
+	Uuid    string    `json:"uuid" example:"196bf376-e82b-4893-be62-3e5b5b7902e2"`
+	Url     string    `json:"url" example:"http://localhost:3000/data"`
+	Created time.Time `json:"created" example:"2023-07-29T07:52:50Z"`
+	Place   string    `json:"place" example:"Garden"`
 }
 
 type Data struct {
@@ -141,7 +141,7 @@ func (m *Manager) getStationFromDB(query string, args []interface{}) ([]Station,
 }
 
 // Remove station from Database
-func (m *Manager) Remove(uuid string) bool {
+func (m *Manager) Remove(uuid string) (bool, error) {
 	db := db.NewDb()
 	defer db.Close()
 
@@ -150,10 +150,10 @@ func (m *Manager) Remove(uuid string) bool {
 	_, err := db.Exec(query, uuid)
 
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	return true
+	return true, nil
 }
 
 // Remove all station from Database => only in dev

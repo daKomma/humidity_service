@@ -2,7 +2,11 @@ package server
 
 import (
 	"humidity_service/main/controller"
+	docs "humidity_service/main/docs"
 	"sync"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,9 +16,13 @@ var (
 	once   sync.Once
 )
 
-// Init all routs of the router
+// @Title Humidity service API
+// @version 1.0
+// @description This is a simple server to get and store data from multiple sensor stations.
+// @host localhost:8080
 func NewRouter() *gin.Engine {
 	once.Do(func() {
+		docs.SwaggerInfo.BasePath = "/"
 		router = gin.Default()
 
 		router.UseRawPath = true
@@ -48,6 +56,8 @@ func NewRouter() *gin.Engine {
 
 			station.DELETE("/:id", register.Remove)
 		}
+
+		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	})
 	return router

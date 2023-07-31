@@ -1,0 +1,142 @@
+definitions:
+  controller.Body:
+    properties:
+      place:
+        example: Garden
+        type: string
+      url:
+        example: http://localhost:8080/data
+        type: string
+    required:
+    - place
+    - url
+    type: object
+  controller.JSONBadReqResult:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: Wrong Parameter
+        type: string
+    type: object
+  controller.JSONNotFoundResult:
+    properties:
+      code:
+        example: 404
+        type: integer
+      message:
+        example: Not found
+        type: string
+    type: object
+  controller.JSONSuccessResult:
+    properties:
+      code:
+        example: 400
+        type: integer
+      message:
+        example: Wrong Parameter
+        type: string
+    type: object
+  models.Station:
+    properties:
+      created:
+        example: "2023-07-29T07:52:50Z"
+        type: string
+      place:
+        example: Garden
+        type: string
+      url:
+        example: http://localhost:3000/data
+        type: string
+      uuid:
+        example: 196bf376-e82b-4893-be62-3e5b5b7902e2
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /health:
+    get:
+      description: returns health status of the server
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: health check
+  /station:
+    delete:
+      description: Removes station with given UUID from the service and database
+      parameters:
+      - description: Station ID
+        in: path
+        name: uuid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.JSONSuccessResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: Remove a Station
+    get:
+      description: Get all stations or one by its UUID
+      parameters:
+      - description: Station ID
+        in: path
+        name: uuid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Station'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: get station
+  /station/register:
+    post:
+      consumes:
+      - application/json
+      description: Add new station to the service and database
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.Body'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Station'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.JSONBadReqResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: Create new Station
+swagger: "2.0"

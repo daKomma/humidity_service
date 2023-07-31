@@ -10,7 +10,12 @@ import (
 // Controller for managing Health information
 type HealthController struct{}
 
-// get the status of the application
+// Status godoc
+// @Summary health check
+// @Description returns health status of the server
+// @Produce json
+// @Success 200 {string} asd
+// @Router /health [get]
 func (h HealthController) Status(c *gin.Context) {
 	timestamp := time.Now().Format(time.RFC3339)
 
