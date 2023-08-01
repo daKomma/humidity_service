@@ -83,6 +83,7 @@ func (m *Manager) Add(url string, place string) ([]Station, error) {
 	return m.GetStation(uuid)
 }
 
+// Test if station is valid (Url and Response)
 func (m *Manager) testStation(url string) (bool, error) {
 	_, err := m.getStationData(url)
 
@@ -110,7 +111,6 @@ func (m *Manager) GetAllStation() ([]Station, error) {
 
 // helper function to do request to database
 func (m *Manager) getStationFromDB(query string, args []interface{}) ([]Station, error) {
-
 	db := db.NewDb()
 
 	defer db.Close()
@@ -171,8 +171,8 @@ func (m *Manager) RemoveAllStation() bool {
 	return true
 }
 
+// Get live data from given stations
 func (m *Manager) LiveData(stations []Station) []StationData {
-
 	var wg sync.WaitGroup
 
 	countStations := len(stations)
@@ -198,6 +198,7 @@ func (m *Manager) LiveData(stations []Station) []StationData {
 	return resp
 }
 
+// Fetch data from Station
 func (m *Manager) getLiveData(station *Station, stData chan<- StationData, onExit func()) {
 	go func() {
 		defer onExit()
@@ -239,13 +240,9 @@ func (m *Manager) Update(stations []Station) {
 			log.Println("Failed to save Data")
 		}
 	}
-
-	// TODO Add to set station on paused
-	// for data := range failedChanel {
-
-	// }
 }
 
+// get data from station and bind them
 func (m *Manager) addStationData(station *Station, failed chan<- string, success chan<- bool, onExit func()) {
 	go func() {
 		defer onExit()
@@ -360,6 +357,7 @@ func (m *Manager) GetAllData() ([]StationData, error) {
 	return stationData, nil
 }
 
+// get station data from db
 func (m *Manager) getStationDataAsChanel(station *Station, stations chan<- []StationData, errors chan<- error, onExit func()) {
 	go func() {
 		defer onExit()
