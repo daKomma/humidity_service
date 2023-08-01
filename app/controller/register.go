@@ -28,14 +28,15 @@ type JSONNotFoundResult struct {
 	Message string `json:"message" example:"Not found"`
 }
 
-type Body struct {
+type StationBody struct {
 	Url   string `json:"url" binding:"required" example:"http://localhost:8080/data"`
 	Place string `json:"place" binding:"required" example:"Garden"`
 }
 
 // Get godoc
-// @Summary get station
+// @Summary Get station
 // @Description Get all stations or one by its UUID
+// @Tags Stations
 // @Produce json
 // @Param uuid path string false "Station ID"
 // @Success 200 {array} models.Station
@@ -74,15 +75,16 @@ func (r RegisterController) Get(c *gin.Context) {
 // Add godoc
 // @Summary Create new Station
 // @Description Add new station to the service and database
+// @Tags Stations
 // @Accept  json
 // @Produce json
-// @Param request body controller.Body true "query params"
+// @Param request body controller.StationBody true "query params"
 // @Success 200 {array} models.Station
 // @Failure 400 {object}  controller.JSONBadReqResult
 // @Failure 404 {object}  controller.JSONNotFoundResult
 // @Router /station/register [post]
 func (r RegisterController) Add(c *gin.Context) {
-	var body Body
+	var body StationBody
 
 	// get body and if error handle it
 	if err := c.BindJSON(&body); err != nil {
@@ -123,6 +125,7 @@ func (r RegisterController) Add(c *gin.Context) {
 // Remove godoc
 // @Summary Remove a Station
 // @Description Removes station with given UUID from the service and database
+// @Tags Stations
 // @Produce json
 // @Param uuid path string true "Station ID"
 // @Success 200 {object} controller.JSONSuccessResult

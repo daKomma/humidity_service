@@ -16,10 +16,6 @@ var (
 	once   sync.Once
 )
 
-// @Title Humidity service API
-// @version 1.0
-// @description This is a simple server to get and store data from multiple sensor stations.
-// @host localhost:8080
 func NewRouter() *gin.Engine {
 	once.Do(func() {
 		docs.SwaggerInfo.BasePath = "/"
@@ -33,28 +29,31 @@ func NewRouter() *gin.Engine {
 
 		router.GET("/health", health.Status)
 
-		// data routes
-		data := router.Group("data")
+		v1 := router.Group("/api/v1")
 		{
-			dataController := new(controller.DataController)
+			// data routes
+			data := v1.Group("data")
+			{
+				dataController := new(controller.DataController)
 
-			data.POST("/", dataController.GetSpecific)
+				data.POST("/", dataController.GetSpecific)
 
-			data.POST("/update", dataController.Update)
+				data.POST("/update", dataController.Update)
 
-			data.GET("/live/*id", dataController.GetLive)
-		}
+				data.GET("/live/*id", dataController.GetLive)
+			}
 
-		// station routes
-		station := router.Group("station")
-		{
-			register := new(controller.RegisterController)
+			// station routes
+			station := v1.Group("station")
+			{
+				register := new(controller.RegisterController)
 
-			station.GET("/*id", register.Get)
+				station.GET("/*id", register.Get)
 
-			station.POST("/register", register.Add)
+				station.POST("/register", register.Add)
 
-			station.DELETE("/:id", register.Remove)
+				station.DELETE("/:id", register.Remove)
+			}
 		}
 
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))

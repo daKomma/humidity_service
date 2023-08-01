@@ -1,15 +1,9 @@
+basePath: /api/v1
 definitions:
-  controller.Body:
+  controller.DataBody:
     properties:
-      place:
-        example: Garden
+      uuid:
         type: string
-      url:
-        example: http://localhost:8080/data
-        type: string
-    required:
-    - place
-    - url
     type: object
   controller.JSONBadReqResult:
     properties:
@@ -18,6 +12,21 @@ definitions:
         type: integer
       message:
         example: Wrong Parameter
+        type: string
+    type: object
+  controller.JSONHealthResult:
+    properties:
+      code:
+        example: 200
+        type: integer
+      message:
+        example: healthy i guess
+        type: string
+      status:
+        example: up
+        type: string
+      timestamp:
+        example: "2023-07-29T07:52:50Z"
         type: string
     type: object
   controller.JSONNotFoundResult:
@@ -38,6 +47,27 @@ definitions:
         example: Wrong Parameter
         type: string
     type: object
+  controller.StationBody:
+    properties:
+      place:
+        example: Garden
+        type: string
+      url:
+        example: http://localhost:8080/data
+        type: string
+    required:
+    - place
+    - url
+    type: object
+  models.Data:
+    properties:
+      hum:
+        type: number
+      temp:
+        type: number
+      time:
+        type: string
+    type: object
   models.Station:
     properties:
       created:
@@ -53,9 +83,85 @@ definitions:
         example: 196bf376-e82b-4893-be62-3e5b5b7902e2
         type: string
     type: object
+  models.StationData:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/models.Data'
+        type: array
+      station:
+        $ref: '#/definitions/models.Station'
+    type: object
+host: localhost:8080
 info:
-  contact: {}
+  contact:
+    email: xxxx@xxxx.icom
+    name: XXXX
+    url: http://www.XXXX.com
+  description: This is a simple server to get and store data from multiple sensor
+    stations.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Humidity service API
+  version: "1.0"
 paths:
+  /data:
+    post:
+      consumes:
+      - application/json
+      description: Get all data of one or all stations
+      parameters:
+      - description: query params
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controller.DataBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StationData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/controller.JSONBadReqResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: Get data
+      tags:
+      - Data
+  /data/live:
+    get:
+      description: Get live data from one or all stations
+      parameters:
+      - description: Station ID
+        in: path
+        name: uuid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StationData'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: Get live data
+      tags:
+      - Data
   /health:
     get:
       description: returns health status of the server
@@ -65,8 +171,10 @@ paths:
         "200":
           description: OK
           schema:
-            type: string
-      summary: health check
+            $ref: '#/definitions/controller.JSONHealthResult'
+      summary: Health check
+      tags:
+      - Health
   /station:
     delete:
       description: Removes station with given UUID from the service and database
@@ -88,6 +196,8 @@ paths:
           schema:
             $ref: '#/definitions/controller.JSONNotFoundResult'
       summary: Remove a Station
+      tags:
+      - Stations
     get:
       description: Get all stations or one by its UUID
       parameters:
@@ -108,7 +218,9 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/controller.JSONNotFoundResult'
-      summary: get station
+      summary: Get station
+      tags:
+      - Stations
   /station/register:
     post:
       consumes:
@@ -120,7 +232,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/controller.Body'
+          $ref: '#/definitions/controller.StationBody'
       produces:
       - application/json
       responses:
@@ -139,4 +251,23 @@ paths:
           schema:
             $ref: '#/definitions/controller.JSONNotFoundResult'
       summary: Create new Station
+      tags:
+      - Stations
+  /update:
+    post:
+      description: Updates data from all stations and stores it in the DB
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controller.JSONSuccessResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/controller.JSONNotFoundResult'
+      summary: Update data
+      tags:
+      - Data
 swagger: "2.0"

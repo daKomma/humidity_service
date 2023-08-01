@@ -11,7 +11,19 @@ import (
 // Controller for managing data
 type DataController struct{}
 
-// Get live data from one or all stations
+type DataBody struct {
+	Uuid string `json:"uuid"`
+}
+
+// GetLive godoc
+// @Summary Get live data
+// @Description Get live data from one or all stations
+// @Tags Data
+// @Produce json
+// @Param uuid path string false "Station ID"
+// @Success 200 {array} models.StationData
+// @Failure 404 {object}  controller.JSONNotFoundResult
+// @Router /data/live [get]
 func (d *DataController) GetLive(c *gin.Context) {
 	manager := models.GetManager()
 
@@ -29,8 +41,9 @@ func (d *DataController) GetLive(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusNotFound, JSONNotFoundResult{
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
 		})
 		return
 	}
@@ -38,17 +51,26 @@ func (d *DataController) GetLive(c *gin.Context) {
 	c.JSON(http.StatusOK, manager.LiveData(stations))
 }
 
+// GetSpecific godoc
+// @Summary Get data
+// @Description Get all data of one or all stations
+// @Tags Data
+// @Accept  json
+// @Produce json
+// @Param request body controller.DataBody true "query params"
+// @Success 200 {array} models.StationData
+// @Failure 400 {object}  controller.JSONBadReqResult
+// @Failure 404 {object}  controller.JSONNotFoundResult
+// @Router /data [post]
 func (d DataController) GetSpecific(c *gin.Context) {
-	type Body struct {
-		Uuid string `json:"uuid"`
-	}
 
-	var body Body
+	var body DataBody
 
 	// get body and if error handle it
 	if err := c.BindJSON(&body); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "Wrong body",
+		c.JSON(http.StatusBadRequest, JSONBadReqResult{
+			Code:    http.StatusBadRequest,
+			Message: "Wrong body",
 		})
 		return
 	}
@@ -65,8 +87,9 @@ func (d DataController) GetSpecific(c *gin.Context) {
 	}
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusNotFound, JSONNotFoundResult{
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
 		})
 		return
 	}
@@ -74,20 +97,32 @@ func (d DataController) GetSpecific(c *gin.Context) {
 	c.JSON(http.StatusOK, data)
 }
 
+// Update godoc
+// @Summary Update data
+// @Description Updates data from all stations and stores it in the DB
+// @Tags Data
+// @Produce json
+// @Success 200 {object} controller.JSONSuccessResult
+// @Failure 404 {object}  controller.JSONNotFoundResult
+// @Router /update [post]
 func (d *DataController) Update(c *gin.Context) {
 	manager := models.GetManager()
 
 	stations, err := manager.GetAllStation()
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": err.Error(),
+		c.JSON(http.StatusNotFound, JSONNotFoundResult{
+			Code:    http.StatusNotFound,
+			Message: err.Error(),
 		})
 		return
 	}
 
 	manager.Update(stations)
 
-	c.JSON(http.StatusOK, gin.H{})
+	c.JSON(http.StatusOK, JSONSuccessResult{
+		Code:    http.StatusOK,
+		Message: "All stations updated.",
+	})
 	return
 }

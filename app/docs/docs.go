@@ -10,24 +10,121 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "contact": {
+            "name": "XXXX",
+            "url": "http://www.XXXX.com",
+            "email": "xxxx@xxxx.icom"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/data": {
+            "post": {
+                "description": "Get all data of one or all stations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Get data",
+                "parameters": [
+                    {
+                        "description": "query params",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controller.DataBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.StationData"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/controller.JSONBadReqResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/controller.JSONNotFoundResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/data/live": {
+            "get": {
+                "description": "Get live data from one or all stations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Get live data",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Station ID",
+                        "name": "uuid",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.StationData"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/controller.JSONNotFoundResult"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "returns health status of the server",
                 "produces": [
                     "application/json"
                 ],
-                "summary": "health check",
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/controller.JSONHealthResult"
                         }
                     }
                 }
@@ -39,7 +136,10 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "get station",
+                "tags": [
+                    "Stations"
+                ],
+                "summary": "Get station",
                 "parameters": [
                     {
                         "type": "string",
@@ -70,6 +170,9 @@ const docTemplate = `{
                 "description": "Removes station with given UUID from the service and database",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Stations"
                 ],
                 "summary": "Remove a Station",
                 "parameters": [
@@ -106,6 +209,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Stations"
+                ],
                 "summary": "Create new Station",
                 "parameters": [
                     {
@@ -114,7 +220,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/controller.Body"
+                            "$ref": "#/definitions/controller.StationBody"
                         }
                     }
                 ],
@@ -142,23 +248,40 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/update": {
+            "post": {
+                "description": "Updates data from all stations and stores it in the DB",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Data"
+                ],
+                "summary": "Update data",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.JSONSuccessResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/controller.JSONNotFoundResult"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "controller.Body": {
+        "controller.DataBody": {
             "type": "object",
-            "required": [
-                "place",
-                "url"
-            ],
             "properties": {
-                "place": {
-                    "type": "string",
-                    "example": "Garden"
-                },
-                "url": {
-                    "type": "string",
-                    "example": "http://localhost:8080/data"
+                "uuid": {
+                    "type": "string"
                 }
             }
         },
@@ -172,6 +295,27 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Wrong Parameter"
+                }
+            }
+        },
+        "controller.JSONHealthResult": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "example": 200
+                },
+                "message": {
+                    "type": "string",
+                    "example": "healthy i guess"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "up"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "example": "2023-07-29T07:52:50Z"
                 }
             }
         },
@@ -201,6 +345,37 @@ const docTemplate = `{
                 }
             }
         },
+        "controller.StationBody": {
+            "type": "object",
+            "required": [
+                "place",
+                "url"
+            ],
+            "properties": {
+                "place": {
+                    "type": "string",
+                    "example": "Garden"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "http://localhost:8080/data"
+                }
+            }
+        },
+        "models.Data": {
+            "type": "object",
+            "properties": {
+                "hum": {
+                    "type": "number"
+                },
+                "temp": {
+                    "type": "number"
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Station": {
             "type": "object",
             "properties": {
@@ -221,18 +396,32 @@ const docTemplate = `{
                     "example": "196bf376-e82b-4893-be62-3e5b5b7902e2"
                 }
             }
+        },
+        "models.StationData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Data"
+                    }
+                },
+                "station": {
+                    "$ref": "#/definitions/models.Station"
+                }
+            }
         }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8080",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "Humidity service API",
+	Description:      "This is a simple server to get and store data from multiple sensor stations.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
