@@ -20,6 +20,8 @@ docker-compose up
 ### Endpoints
 A detailed documentation of the provided endpoints can then be found at [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html#/)
 
+❗❗Note that all entpoints beside `/health` have the base path `/api/v1` this isn´t rendered by swagger :/  ❗❗
+
 ## Development
 To develop the application the stations where mocked. To use the development enviroment start the `docker-compose-dev.yml`.
 ```bash
