@@ -9,4 +9,7 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o /usr/local/bin/app/server
 
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD curl -f http://localhost:8080/health || exit 1
+
 CMD ["/usr/local/bin/app/server"]
