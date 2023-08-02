@@ -1,29 +1,20 @@
 version: '3.9'
 services:
-  mock-1:
+  server:
     build:
-      context: ./mock/server
+      context: ./app
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "8080:8080"
     environment:
-      PORT: 3000
-      HUM: 60.6
-      TEMP: 20.9
+      MYSQL_STRING: 'goaplication:goIsKing@tcp(mysql:3306)/humservice?parseTime=true'
+      CRON_INTERVAL: '@every 10m'
     depends_on: 
-      - mysql
-  mock-2:
-    build:
-      context: ./mock/server
-      dockerfile: Dockerfile
-    ports:
-      - "3001:3001"
-    environment:
-      PORT: 3001
-      HUM: 33.3
-      TEMP: 35.7
-    depends_on: 
-      - mysql
+      mysql:
+        condition: service_healthy
+    # networks:
+    #   - backend
+
   mysql:
     platform: linux/x86_64
     image: mysql:8-debian
@@ -45,16 +36,14 @@ services:
       - '3306'
       # Where our data will be persisted
     volumes:
-      - ./testDB:/var/lib/mysql
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: pma
-    links:
-      - mysql
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      PMA_ARBITRARY: 1
-    restart: always
-    ports:
-      - 8081:80
+      - ./liveDB:/var/lib/mysql
+    healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
+    # networks:
+    #   - backend
+
+# networks:
+#   backend:
+#       driver: bridge
