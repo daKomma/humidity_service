@@ -9,5 +9,5 @@ func Init() {
 
 	NewCron()
 
-	router.Run("localhost:8080")
+	router.Run()
 }
