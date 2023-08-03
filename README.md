@@ -1,18 +1,17 @@
 # Humidity Service
 
 ## Description
-In this project i developed a REST service to manage multiple sensor stations which provide values for humidity and temperature. 
-I used the GO programming language because i wanted to learn this language with its features. In de developing process where lots of ups and downs but overall it was a great experience and i learned a lot of things.
+In this project I developed a REST service to manage several sensor stations that provide values for humidity and temperature. I used the GO programming language because I wanted to learn about this language and its features. There were many ups and downs in the development process, but overall it was a great experience and I learned a lot.
 
 ## Improvement Options
-Of course is this code not perfect. Here are some improvements that can be done in the next versions.
+Of course, this code is not perfect. Here are some improvements that can be made in the next releases:
 - Change Dockerfile to a Multistage build to increase security.
-- Add unit test to the code.
-- Add a pause mode to the stations so stations which are currently not available can be handled better.
+- Adding unit tests to the code.
+- Adding a pause mode for stations to better handle stations that are currently unavailable.
 
 ## Usage
 ### Start
-To start the service along side the database in this case a MySql database run:
+To start the service along with the database, a MySql database is run in this case:
 ```bash
 docker-compose up
 ```
@@ -20,10 +19,10 @@ docker-compose up
 ### Endpoints
 A detailed documentation of the provided endpoints can then be found at [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html#/)
 
-❗❗Note that all entpoints beside `/health` have the base path `/api/v1` this isn´t rendered by swagger :/  ❗❗
+❗❗Note that all endpoints except `/health` have the `/api/v1` base path, which is not reflected by Swagger :/❗❗
 
 ## Development
-To develop the application the stations where mocked. To use the development enviroment start the `docker-compose-dev.yml`.
+To develop the application, the stations were mocked. To use the development environment, start the `docker-compose-dev.yml`.
 ```bash
 docker-compose -f docker-compose-dev.yml up
 ```
