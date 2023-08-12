@@ -11,3 +11,6 @@ __debug_bin
 
 *node_modules
 *package-lock.json
+
+liveDB/
+testDB/
